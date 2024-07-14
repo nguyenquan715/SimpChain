@@ -1,4 +1,5 @@
 import { newBlock, newGenesisBlock } from "./block.service.js";
+import { validate } from "./proofofwork.service.js";
 
 export const newChain = () => {
   const blocks = [newGenesisBlock()];
@@ -15,14 +16,20 @@ export const newChain = () => {
     getLatestBlock() {
       return blocks[blocks.length - 1];
     },
+    getBlockInfo(blockNumber) {
+      const block = blocks[blockNumber];
+      const { data, timestamp, prevBlockHash, blockHash, nonce } = block;
+      console.log("Prev block hash: ", prevBlockHash);
+      console.log("Data: ", data);
+      console.log("Timestamp: ", timestamp);
+      console.log("Block hash: ", blockHash);
+      console.log("Nonce: ", nonce);
+      console.log(`Validated: ${validate(block)}`);
+      console.log("--------------------------------");
+    },
     info() {
-      for (const block of blocks) {
-        const { data, timestamp, prevBlockHash, blockHash } = block;
-        console.log(prevBlockHash);
-        console.log(data);
-        console.log(timestamp);
-        console.log(blockHash);
-        console.log("--------------------------------");
+      for (let i = 0; i < blocks.length; i += 1) {
+        this.getBlockInfo(i);
       }
     },
   };

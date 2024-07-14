@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import * as crypto from "crypto";
+import { mining } from "./proofofwork.service.js";
 
 export const newBlock = (data, prevBlockHash) => {
   const timestamp = Math.floor(Date.now() / 1000);
@@ -7,14 +7,17 @@ export const newBlock = (data, prevBlockHash) => {
     Buffer.from(prevBlockHash),
     Buffer.from(data),
     Buffer.from(String(timestamp)),
+    Buffer.from(process.env.MINING_DIFFICULTY),
   ]);
-  const blockHash = crypto.createHash("sha256").update(headers).digest("hex");
+  const { nonce, blockHash } = mining(headers);
 
   return {
+    headers,
     data,
     timestamp,
     prevBlockHash,
     blockHash,
+    nonce,
   };
 };
 

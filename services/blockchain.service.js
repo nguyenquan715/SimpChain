@@ -5,7 +5,7 @@ export const newChain = () => {
   const blocks = [newGenesisBlock()];
   return {
     addBlock(data) {
-      const prevBlockHash = blocks[blocks.length - 1].blockHash;
+      const prevBlockHash = this.getLatestBlock().blockHash;
       const block = newBlock(data, prevBlockHash);
       blocks.push(block);
       return block;
@@ -13,8 +13,11 @@ export const newChain = () => {
     getBlocks() {
       return blocks;
     },
+    getLatestBlockNumber() {
+      return blocks.length - 1;
+    },
     getLatestBlock() {
-      return blocks[blocks.length - 1];
+      return blocks[this.getLatestBlockNumber()];
     },
     getBlockInfo(blockNumber) {
       const block = blocks[blockNumber];

@@ -1,45 +1,76 @@
 import inquirer from "inquirer";
-
-const TASK = Object.freeze({
-  PRINT_CHAIN: "Print out chain information",
-  ADD_BLOCK: "Add new block",
-  STOP: "Stop",
-});
+import { TASK } from "../helpers/constants.js";
+import { newUTXOTransaction } from "./transaction.service.js";
 
 const questions = [
   {
     type: "list",
     name: "task",
     message: "Which task you want to do?",
-    choices: [TASK.PRINT_CHAIN, TASK.ADD_BLOCK, TASK.STOP],
+    choices: Object.values(TASK),
   },
   {
     type: "input",
-    name: "blockData",
-    message: "Enter the block data:",
+    name: "address",
+    message: "Enter the user address:",
     when(answers) {
-      return answers.task === TASK.ADD_BLOCK;
+      return answers.task === TASK.GET_BALANCE;
     },
   },
 ];
 
 const printChain = (chain) => chain.info();
 
-const addBlock = (chain, data) => {
-  chain.addBlock(data);
-  const latestBlockNumber = chain.getLatestBlockNumber();
-  chain.getBlockInfo(latestBlockNumber);
+const sendCoin = async (chain) => {
+  const questions = [
+    {
+      type: "input",
+      name: "from",
+      message: "Enter the sender address:",
+    },
+    {
+      type: "input",
+      name: "to",
+      message: "Enter the receiver address:",
+    },
+    {
+      type: "input",
+      name: "amount",
+      message: "Enter the transfer amount:",
+    },
+  ];
+
+  try {
+    const answers = await inquirer.prompt(questions);
+    const { from, to, amount } = answers;
+    const transaction = newUTXOTransaction(from, to, Number(amount), chain);
+    chain.addBlock([transaction]);
+    const latestBlockNumber = chain.getLatestBlockNumber();
+    chain.getBlockInfo(latestBlockNumber);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+const getBalance = (chain, address) => {
+  const balance = chain.getBalanceOfUser(address);
+  console.log(`Balance of ${address}: ${balance}`);
 };
 
 export const doTask = (chain) => {
-  inquirer.prompt(questions).then((answers) => {
+  console.log("********************************");
+  inquirer.prompt(questions).then(async (answers) => {
     switch (answers.task) {
       case TASK.PRINT_CHAIN:
         printChain(chain);
         doTask(chain);
         break;
-      case TASK.ADD_BLOCK:
-        addBlock(chain, answers.blockData);
+      case TASK.SEND_COIN:
+        await sendCoin(chain);
+        doTask(chain);
+        break;
+      case TASK.GET_BALANCE:
+        getBalance(chain, answers.address);
         doTask(chain);
         break;
       case TASK.STOP:

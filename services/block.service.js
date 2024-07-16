@@ -1,11 +1,12 @@
 import { Buffer } from "node:buffer";
 import { mining } from "./proofofwork.service.js";
+import { hashTransactions } from "./transaction.service.js";
 
-export const newBlock = (data, prevBlockHash) => {
+export const newBlock = (transactions, prevBlockHash) => {
   const timestamp = Math.floor(Date.now() / 1000);
   const headers = Buffer.concat([
     Buffer.from(prevBlockHash),
-    Buffer.from(data),
+    Buffer.from(hashTransactions(transactions)),
     Buffer.from(String(timestamp)),
     Buffer.from(process.env.MINING_DIFFICULTY),
   ]);
@@ -13,7 +14,7 @@ export const newBlock = (data, prevBlockHash) => {
 
   return {
     headers,
-    data,
+    transactions,
     timestamp,
     prevBlockHash,
     blockHash,
@@ -21,4 +22,4 @@ export const newBlock = (data, prevBlockHash) => {
   };
 };
 
-export const newGenesisBlock = () => newBlock("Genesis Block", "");
+export const newGenesisBlock = (coinbaseTx) => newBlock([coinbaseTx], "");

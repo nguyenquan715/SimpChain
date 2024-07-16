@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import { hashBySHA256 } from "../helpers/crypto.helper.js";
 
 const getTarget = () => {
   const targetBits = BigInt(process.env.MINING_DIFFICULTY);
@@ -9,7 +9,7 @@ const getTarget = () => {
 
 const calculateBlockHash = (headers, nonce) => {
   const headersWithNonce = Buffer.concat([headers, Buffer.from(String(nonce))]);
-  return crypto.createHash("sha256").update(headersWithNonce).digest("hex");
+  return hashBySHA256(headersWithNonce);
 };
 
 export const mining = (headers) => {

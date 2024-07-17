@@ -57,6 +57,15 @@ const getBalance = (chain, address) => {
   console.log(`Balance of ${address}: ${balance}`);
 };
 
+const createWallet = () => {
+  const wallet = global.walletFactory.createWallet();
+  console.log(`New wallet: '${wallet.getAddress()}'`);
+};
+
+const printAllWallets = () => {
+  global.walletFactory.printAllAddresses();
+};
+
 export const doTask = (chain) => {
   console.log("********************************");
   inquirer.prompt(questions).then(async (answers) => {
@@ -71,6 +80,14 @@ export const doTask = (chain) => {
         break;
       case TASK.GET_BALANCE:
         getBalance(chain, answers.address);
+        doTask(chain);
+        break;
+      case TASK.CREATE_WALLET:
+        createWallet();
+        doTask(chain);
+        break;
+      case TASK.PRINT_WALLET_ADDRESSES:
+        printAllWallets();
         doTask(chain);
         break;
       case TASK.STOP:

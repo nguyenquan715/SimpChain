@@ -1,26 +1,29 @@
 import { SUBSIDY } from "../helpers/constants.js";
-import { hashBySHA256 } from "../helpers/crypto.helper.js";
+import { compareBytes, hashBySHA256 } from "../helpers/crypto.helper.js";
+import { hashPublicKey, Wallet } from "./wallet.service.js";
 
 class TxOutput {
-  constructor(value, pubKey) {
+  constructor(value, address) {
     this.value = value;
-    this.pubKey = pubKey;
+    this.pubKeyHash = Wallet.getPubKeyHashFromAddress(address);
   }
 
-  canBeUnlockedWith(unlockingData) {
-    return this.pubKey === unlockingData;
+  canBeUnlockedWith(pubKeyHash) {
+    return compareBytes(this.pubKeyHash, pubKeyHash);
   }
 }
 
 class TxInput {
-  constructor(txId, txOutputIndex, signature) {
+  constructor(txId, txOutputIndex, signature, publicKey) {
     this.txId = txId;
     this.txOutputIndex = txOutputIndex;
     this.signature = signature;
+    this.publicKey = publicKey;
   }
 
-  canUnlockOutputWith(unlockingData) {
-    return this.signature === unlockingData;
+  canUnlockOutputWith(pubKeyHash) {
+    const lockingHash = hashPublicKey(this.publicKey);
+    return compareBytes(lockingHash, pubKeyHash);
   }
 }
 
@@ -58,7 +61,7 @@ export const newCoinbaseTx = (to, data) => {
     data = `Reward to '${to}`;
   }
 
-  const txInput = new TxInput(null, -1, data);
+  const txInput = new TxInput(null, -1, null, Buffer.from(data));
   const txOutput = new TxOutput(SUBSIDY, to);
   const tx = new Transaction(null, [txInput], [txOutput]);
   tx.setID();
@@ -75,11 +78,12 @@ export const newUTXOTransaction = (from, to, amount, chain) => {
     throw new Error("ERROR: Not enough funds");
   }
 
+  const fromWallet = global.walletFactory.getWallet(from);
   const txInputs = [];
   Object.keys(spendableOutputs).forEach((txId) => {
     const txOutputIndexes = spendableOutputs[txId];
     txOutputIndexes.forEach((outIdx) =>
-      txInputs.push(new TxInput(txId, outIdx, from))
+      txInputs.push(new TxInput(txId, outIdx, null, fromWallet.publicKey))
     );
   });
 

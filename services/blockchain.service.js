@@ -5,6 +5,7 @@ import {
 import { newBlock, newGenesisBlock } from "./block.service.js";
 import { validateBlock } from "./proofofwork.service.js";
 import { newCoinbaseTx } from "./transaction.service.js";
+import { Wallet } from "./wallet.service.js";
 
 class Blockchain {
   constructor() {
@@ -36,6 +37,7 @@ class Blockchain {
   }
 
   findUTXOs(address) {
+    const pubKeyHash = Wallet.getPubKeyHashFromAddress(address);
     // Mapping TxID => [{outputIndex, output}]
     const UTXOs = {};
     // Mapping TxID => [outputIndex]
@@ -50,7 +52,7 @@ class Blockchain {
           if (spentTXOs[txId]) {
             if (spentTXOs[txId].includes(outIdx)) continue;
           }
-          if (txOutputs[outIdx].canBeUnlockedWith(address)) {
+          if (txOutputs[outIdx].canBeUnlockedWith(pubKeyHash)) {
             if (!UTXOs[txId]) UTXOs[txId] = [];
             UTXOs[txId].push({
               txOutputIndex: outIdx,
@@ -62,7 +64,7 @@ class Blockchain {
         // Update list spent TXOs
         if (transaction.isCoinbaseTx()) continue;
         txInputs.forEach((input) => {
-          if (input.canUnlockOutputWith(address)) {
+          if (input.canUnlockOutputWith(pubKeyHash)) {
             const { txId, txOutputIndex } = input;
             if (!spentTXOs[txId]) spentTXOs[txId] = [];
             spentTXOs[txId].push(txOutputIndex);

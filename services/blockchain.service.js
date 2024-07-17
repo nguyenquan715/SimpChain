@@ -3,7 +3,7 @@ import {
   GENESIS_RECEIVER_ADDR,
 } from "../helpers/constants.js";
 import { newBlock, newGenesisBlock } from "./block.service.js";
-import { validate } from "./proofofwork.service.js";
+import { validateBlock } from "./proofofwork.service.js";
 import { newCoinbaseTx } from "./transaction.service.js";
 
 class Blockchain {
@@ -113,7 +113,7 @@ class Blockchain {
     console.log("Timestamp: ", timestamp);
     console.log("Block hash: ", blockHash);
     console.log("Nonce: ", nonce);
-    console.log(`Validated: ${validate(block)}`);
+    console.log(`Validated: ${validateBlock(block)}`);
     console.log("--------------------------------");
   }
 

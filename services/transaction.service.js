@@ -45,6 +45,7 @@ class Transaction {
     );
   }
 }
+
 export const hashTransactions = (transactions) => {
   const txHashes = transactions.map((tx) => Buffer.from(tx.txId, "hex"));
   const concatenatedHashes = Buffer.concat(txHashes);

@@ -4,7 +4,7 @@ import { hashByRIPEMD160, hashBySHA256 } from "../helpers/crypto.helper.js";
 
 const EC = new elliptic.ec("p256");
 
-class Wallet {
+export class Wallet {
   constructor() {
     const { privateKey, publicKey } = newKeyPair();
     this.privateKey = privateKey;
@@ -27,8 +27,6 @@ class Wallet {
     return address;
   }
 }
-
-export default Wallet;
 
 const newKeyPair = () => {
   const key = EC.genKeyPair();

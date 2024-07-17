@@ -12,7 +12,7 @@ const calculateBlockHash = (headers, nonce) => {
   return hashBySHA256(headersWithNonce);
 };
 
-export const mining = (headers) => {
+export const miningBlock = (headers) => {
   const target = getTarget();
   let nonce = 0;
   let blockHash = "";
@@ -28,7 +28,7 @@ export const mining = (headers) => {
   return { nonce, blockHash };
 };
 
-export const validate = (block) => {
+export const validateBlock = (block) => {
   const { headers, nonce, blockHash } = block;
   const blockHash2 = calculateBlockHash(headers, nonce);
   if (blockHash !== blockHash2) return false;

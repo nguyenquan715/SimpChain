@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { mining } from "./proofofwork.service.js";
+import { miningBlock } from "./proofofwork.service.js";
 import { hashTransactions } from "./transaction.service.js";
 
 export const newBlock = (transactions, prevBlockHash) => {
@@ -10,7 +10,7 @@ export const newBlock = (transactions, prevBlockHash) => {
     Buffer.from(String(timestamp)),
     Buffer.from(process.env.MINING_DIFFICULTY),
   ]);
-  const { nonce, blockHash } = mining(headers);
+  const { nonce, blockHash } = miningBlock(headers);
 
   return {
     headers,

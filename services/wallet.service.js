@@ -1,10 +1,14 @@
 import elliptic from "elliptic";
 import bs58 from "bs58";
-import { hashByRIPEMD160, hashBySHA256 } from "../helpers/crypto.helper.js";
+import {
+  hashByRIPEMD160,
+  hashBySHA256,
+  uint8ArrayToHex,
+} from "../helpers/crypto.helper.js";
 import { readFile, writeIntoFile } from "../helpers/file.helper.js";
 import { CHECKSUM_LENGTH, WALLET_VERSION } from "../helpers/constants.js";
 
-const EC = new elliptic.ec("p256");
+export const EC = new elliptic.ec("p256");
 
 export class Wallet {
   constructor(privateKey, publicKey) {
@@ -16,7 +20,7 @@ export class Wallet {
     const pubKeyHash = hashPublicKey(this.publicKey);
     const payload = Buffer.concat([
       Buffer.from([WALLET_VERSION]),
-      Buffer.from(pubKeyHash),
+      Buffer.from(pubKeyHash, "hex"),
     ]);
 
     const checksum = checkSum(payload);
@@ -27,8 +31,11 @@ export class Wallet {
   }
 
   static getPubKeyHashFromAddress(address) {
-    const fullPayload = bs58.decode(address);
-    return fullPayload.slice(1, fullPayload.length - CHECKSUM_LENGTH);
+    const decoded = bs58.decode(address);
+
+    const pubKeyHash = decoded.slice(1, -CHECKSUM_LENGTH);
+
+    return uint8ArrayToHex(pubKeyHash);
   }
 }
 
@@ -60,7 +67,7 @@ export class WalletFactory {
   getWallet(address) {
     const wallet = this.wallets[address];
     if (!wallet) {
-      throw new Error("This wallet does not exist");
+      throw new Error("ERROR: This wallet does not exist");
     }
     return wallet;
   }
@@ -75,7 +82,7 @@ export class WalletFactory {
 const newKeyPair = () => {
   const key = EC.genKeyPair();
   const privateKey = key.getPrivate("hex");
-  const publicKey = key.getPublic().encode("hex");
+  const publicKey = key.getPublic("hex");
   return { privateKey, publicKey };
 };
 

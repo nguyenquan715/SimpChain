@@ -48,18 +48,26 @@ const sendCoin = async (chain) => {
     const latestBlockNumber = chain.getLatestBlockNumber();
     chain.getBlockInfo(latestBlockNumber);
   } catch (err) {
-    console.log(err.message);
+    console.error(err);
   }
 };
 
 const getBalance = (chain, address) => {
-  const balance = chain.getBalanceOfUser(address);
-  console.log(`Balance of ${address}: ${balance}`);
+  try {
+    const balance = chain.getBalanceOfUser(address);
+    console.log(`Balance of ${address}: ${balance}`);
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const createWallet = () => {
-  const wallet = global.walletFactory.createWallet();
-  console.log(`New wallet: '${wallet.getAddress()}'`);
+  try {
+    const wallet = global.walletFactory.createWallet();
+    console.log(`New wallet: '${wallet.getAddress()}'`);
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const printAllWallets = () => {

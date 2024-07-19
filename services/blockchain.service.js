@@ -18,14 +18,15 @@ class Blockchain {
   }
 
   addBlock(transactions) {
+    for (const tx of transactions) {
+      if (!this.verifyTransaction(tx)) {
+        throw new Error("ERROR: Transaction signature invalid");
+      }
+    }
     const prevBlockHash = this.getLatestBlock().blockHash;
     const block = newBlock(transactions, prevBlockHash);
     this.blocks.push(block);
     return block;
-  }
-
-  getBlocks() {
-    return this.blocks;
   }
 
   getLatestBlockNumber() {
@@ -36,6 +37,10 @@ class Blockchain {
     return this.blocks[this.getLatestBlockNumber()];
   }
 
+  getBlock(blockNumber) {
+    return this.blocks[blockNumber];
+  }
+
   findUTXOs(address) {
     const pubKeyHash = Wallet.getPubKeyHashFromAddress(address);
     // Mapping TxID => [{outputIndex, output}]
@@ -44,7 +49,7 @@ class Blockchain {
     const spentTXOs = {};
 
     for (let i = this.getLatestBlockNumber(); i >= 0; i -= 1) {
-      const block = this.blocks[i];
+      const block = this.getBlock(i);
       for (const transaction of block.transactions) {
         const { txId, txOutputs, txInputs } = transaction;
         // Check TXOs
@@ -102,6 +107,33 @@ class Blockchain {
       if (accumulatedAmount >= amount) break;
     }
     return { accumulatedAmount, spendableOutputs };
+  }
+
+  findTransactionByIds(txIds) {
+    const transactions = {};
+    for (let i = this.getLatestBlockNumber(); i >= 0; i -= 1) {
+      const block = this.getBlock(i);
+      for (const transaction of block.transactions) {
+        if (txIds.includes(transaction.txId)) {
+          transactions[transaction.txId] = transaction;
+          if (Object.keys(transactions).length === txIds.length)
+            return transactions;
+        }
+      }
+    }
+    throw new Error("ERROR: At least one transaction not found");
+  }
+
+  signTransaction(transaction, privateKey) {
+    const prevTxIds = transaction.txInputs.map((input) => input.txId);
+    const prevTxs = this.findTransactionByIds(prevTxIds);
+    transaction.sign(privateKey, prevTxs);
+  }
+
+  verifyTransaction(transaction) {
+    const prevTxIds = transaction.txInputs.map((input) => input.txId);
+    const prevTxs = this.findTransactionByIds(prevTxIds);
+    return transaction.verify(prevTxs);
   }
 
   getBlockInfo(blockNumber) {
